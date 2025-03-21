@@ -1,5 +1,7 @@
 # Todo API
 
+> **Note:** API documentation is available at `/api-docs`
+
 A RESTful API for managing todo items built with Node.js, Express, and Sequelize.
 
 ## Features
