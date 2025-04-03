@@ -18,6 +18,10 @@ const Todo = sequelize.define('Todo', {
     type: DataTypes.BOOLEAN,
     defaultValue: false
   },
+  userId: {
+    type: DataTypes.INTEGER,
+    allowNull: false
+  },
   createdAt: {
     type: DataTypes.DATE,
     defaultValue: DataTypes.NOW

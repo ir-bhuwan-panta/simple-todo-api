@@ -1,0 +1,192 @@
+{
+  "info": {
+    "name": "Todo API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "A collection for testing the Todo API endpoints"
+  },
+  "item": [
+    {
+      "name": "Get All Todos",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/todos",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "todos"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', function() {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "pm.test('Response is an array', function() {",
+              "    pm.expect(pm.response.json()).to.be.an('array');",
+              "});",
+              "if (pm.response.json().length > 0) {",
+              "    pm.test('Todo item has required properties', function() {",
+              "        const todo = pm.response.json()[0];",
+              "        pm.expect(todo).to.have.property('item');",
+              "        pm.expect(todo).to.have.property('description');",
+              "        pm.expect(todo).to.have.property('tag');",
+              "        pm.expect(todo).to.have.property('userId');",
+              "    });",
+              "}"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Create Todo",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"item\": \"Buy groceries\",\n    \"description\": \"Get milk, bread, and eggs\",\n    \"tag\": \"shopping\",\n    \"userId\": 1\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/todos",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "todos"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 201', function() {",
+              "    pm.response.to.have.status(201);",
+              "});",
+              "pm.test('Response has created todo', function() {",
+              "    const todo = pm.response.json();",
+              "    pm.expect(todo).to.have.property('item');",
+              "    pm.expect(todo).to.have.property('description');",
+              "    pm.expect(todo).to.have.property('tag');",
+              "    pm.expect(todo).to.have.property('userId');",
+              "    pm.globals.set('todoId', todo.id);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Get Todo by ID",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/todos/{{todoId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "todos", "{{todoId}}"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', function() {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "pm.test('Response has todo details', function() {",
+              "    const todo = pm.response.json();",
+              "    pm.expect(todo).to.have.property('id');",
+              "    pm.expect(todo).to.have.property('item');",
+              "    pm.expect(todo).to.have.property('description');",
+              "    pm.expect(todo).to.have.property('tag');",
+              "    pm.expect(todo).to.have.property('userId');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Update Todo",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"item\": \"Buy groceries\",\n    \"description\": \"Updated: Get milk, bread, eggs, and cheese\",\n    \"tag\": \"shopping\",\n    \"userId\": 1,\n    \"completed\": true\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/todos/{{todoId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "todos", "{{todoId}}"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', function() {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "pm.test('Response has updated todo', function() {",
+              "    const todo = pm.response.json();",
+              "    pm.expect(todo).to.have.property('completed', true);",
+              "    pm.expect(todo.description).to.include('Updated');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Delete Todo",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/todos/{{todoId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "todos", "{{todoId}}"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', function() {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "pm.test('Response has success message', function() {",
+              "    const response = pm.response.json();",
+              "    pm.expect(response).to.have.property('message');",
+              "    pm.expect(response.message).to.equal('Todo deleted');",
+              "});"
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3003",
+      "type": "string"
+    }
+  ]
+}

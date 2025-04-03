@@ -12,6 +12,7 @@ const Todo = require('../models/Todo');
  *         - item
  *         - description
  *         - tag
+ *         - userId
  *       properties:
  *         item:
  *           type: string
@@ -22,6 +23,9 @@ const Todo = require('../models/Todo');
  *         tag:
  *           type: string
  *           description: Category or tag for the todo
+ *         userId:
+ *           type: integer
+ *           description: ID of the user who owns this todo
  *         completed:
  *           type: boolean
  *           description: Todo completion status
@@ -35,6 +39,12 @@ const Todo = require('../models/Todo');
  *     responses:
  *       200:
  *         description: List of todos
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Todo'
  */
 router.get('/', async (req, res) => {
   try {
@@ -59,13 +69,19 @@ router.get('/', async (req, res) => {
  *     responses:
  *       201:
  *         description: Created todo
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Todo'
  */
 router.post('/', async (req, res) => {
   try {
+    console.log(req.body);
     const newTodo = await Todo.create({
       item: req.body.item,
       description: req.body.description,
-      tag: req.body.tag
+      tag: req.body.tag,
+      userId: req.body.userId,
     });
     res.status(201).json(newTodo);
   } catch (err) {
@@ -87,6 +103,10 @@ router.post('/', async (req, res) => {
  *     responses:
  *       200:
  *         description: Todo details
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Todo'
  */
 router.get('/:id', async (req, res) => {
   try {
@@ -118,6 +138,10 @@ router.get('/:id', async (req, res) => {
  *     responses:
  *       200:
  *         description: Updated todo
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Todo'
  */
 router.put('/:id', async (req, res) => {
   try {

@@ -67,7 +67,8 @@ Request body:
 {
   "item": "Buy groceries",
   "description": "Get milk, bread, and eggs",
-  "tag": "shopping"
+  "tag": "shopping",
+  "userId": 1
 }
 ```
 
@@ -86,6 +87,8 @@ Request body:
   "item": "Buy groceries",
   "description": "Get milk, bread, and eggs",
   "tag": "shopping",
+  "userId": 1,
+  "userId": 1,
   "completed": true
 }
 ```
@@ -114,6 +117,32 @@ The API returns appropriate HTTP status codes:
 - 400: Bad request
 - 404: Resource not found
 - 500: Server error
+
+## Automated Testing
+
+This project includes a Postman collection that can be run using Newman for automated API testing.
+
+### Installing Newman
+
+Newman is a command-line collection runner for Postman. Install it globally using npm:
+
+```bash
+npm install -g newman
+```
+
+### Running Tests
+
+To run the API tests using Newman:
+
+```bash
+newman run Todo_API.postman_collection.json
+```
+
+This will execute all the API tests in the collection and display the results in the terminal. The test results will show:
+- Total requests made
+- Failed tests (if any)
+- Response times
+- Test assertions results
 
 ## Development
 
