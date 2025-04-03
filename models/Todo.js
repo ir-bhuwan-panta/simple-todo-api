@@ -19,7 +19,7 @@ const Todo = sequelize.define('Todo', {
     defaultValue: false
   },
   userId: {
-    type: DataTypes.INTEGER,
+    type: DataTypes.STRING,
     allowNull: false
   },
   createdAt: {
