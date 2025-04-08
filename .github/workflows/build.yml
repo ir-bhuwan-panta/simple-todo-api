@@ -1,0 +1,25 @@
+name: Run PSE Clean Action
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  pse:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Run Custom Action
+        uses: ./.github/actions/my-action
+
+      # - name: Sample failed step
+      #   run: exit 1
+
+      - name: Run post cleanup
+        if: always()
+        shell: bash
+        run: |
+          bash "${POST_SCRIPT}" "${{ job.status }}"

@@ -1,0 +1,21 @@
+name: "Testing Post Job"
+description: "Testing Post Job"
+
+inputs:
+  github-token:
+    description: "GitHub token"
+    required: false
+
+runs:
+  using: "composite"
+  steps:
+    - name: Run main logic
+      shell: bash
+      run: |
+        bash "${{ github.action_path }}/main.sh"
+
+    - name: Register cleanup script
+      shell: bash
+      run: |
+        echo "${{ github.action_path }}/post.sh" >> $GITHUB_PATH
+        echo "POST_SCRIPT=${{ github.action_path }}/post.sh" >> $GITHUB_ENV
