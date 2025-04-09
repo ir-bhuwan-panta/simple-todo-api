@@ -15,8 +15,8 @@ jobs:
       - name: Run Custom Action
         uses: ./.github/actions/my-action
 
-      # - name: Sample failed step
-      #   run: exit 1
+      - name: Sample failed step
+        run: exit 1
 
       - name: Run post cleanup
         if: always()
