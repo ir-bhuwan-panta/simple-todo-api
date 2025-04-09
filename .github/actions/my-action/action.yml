@@ -18,14 +18,26 @@ runs:
       run: |        
         if [ "${{ inputs.mode }}" = "cleanup" ]; then
           echo "JOB DETAILS FROM ACTION.YML----------------------"
-          echo "${{ toJson(github) }}"
+          echo "Current job name: ${{ github.job }}"
+          
+          # Use GitHub API to fetch job status
+          JOB_NAME="${{ github.job }}"
+          RESPONSE=$(curl -s -H "Authorization: token ${{ github.token }}" \
+            "https://api.github.com/repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/jobs")
+          
+          # Find the job with matching name and extract its status
+          JOB_STATUS=$(echo $RESPONSE | jq -r ".jobs[] | select(.name == \"$JOB_NAME\") | .conclusion")
+          echo "Job status: $JOB_STATUS"
+          
           echo "--------------------------------------------------"
 
-          echo "PRINT STEP STATUS FROM ACTION.YML----------------------"
+          echo "PRINT STEP SUMMARY FROM ACTION.YML----------------------"
           cat ${{ github.step_summary }}
           echo "--------------------------------------------------"
 
-          bash "${{ github.action_path }}/post.sh"
+          # Pass the job status to your script
+          JOB_STATUS=${JOB_STATUS:-"${{ inputs.job_status }}"}
+          bash "${{ github.action_path }}/post.sh" "$JOB_STATUS"
         else
           bash "${{ github.action_path }}/main.sh"
         fi
