@@ -20,6 +20,11 @@ runs:
           echo "JOB DETAILS FROM ACTION.YML----------------------"
           echo "${{ toJson(github) }}"
           echo "--------------------------------------------------"
+
+          echo "PRINT STEP STATUS FROM ACTION.YML----------------------"
+          cat "${{ github.step_summary }}"
+          echo "--------------------------------------------------"
+
           bash "${{ github.action_path }}/post.sh"
         else
           bash "${{ github.action_path }}/main.sh"
