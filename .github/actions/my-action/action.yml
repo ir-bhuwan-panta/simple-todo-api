@@ -26,8 +26,8 @@ runs:
             "https://api.github.com/repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/jobs")
           
           # Find the job with matching name and extract its status
-          JOB_STATUS=$(echo $RESPONSE | jq -r ".jobs[] | select(.name == \"$JOB_NAME\") | .conclusion")
-          echo "Job status: $JOB_STATUS"
+          # JOB_STATUS=$(echo $RESPONSE | jq -r ".jobs[] | select(.name == \"$JOB_NAME\") | .conclusion")
+          echo "Job status: $RESPONSE"
           
           echo "--------------------------------------------------"
 
