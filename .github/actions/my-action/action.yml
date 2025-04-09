@@ -2,20 +2,25 @@ name: "Testing Post Job"
 description: "Testing Post Job"
 
 inputs:
-  github-token:
-    description: "GitHub token"
+  mode:
+    description: "Mode"
     required: false
+  job_status:
+    description: "Job"
+    required: false
+    default: 'unknown'
 
 runs:
   using: "composite"
   steps:
     - name: Run main logic
       shell: bash
-      run: |
-        bash "${{ github.action_path }}/main.sh"
-
-    - name: Register cleanup script
-      shell: bash
-      run: |
-        echo "${{ github.action_path }}/post.sh" >> $GITHUB_PATH
-        echo "POST_SCRIPT=${{ github.action_path }}/post.sh" >> $GITHUB_ENV
+      run: |        
+        if [ "${{ inputs.mode }}" = "cleanup" ]; then
+          echo "JOB DETAILS FROM ACTION.YML----------------------"
+          echo "${{ toJson(github) }}"
+          echo "--------------------------------------------------"
+          bash "${{ github.action_path }}/post.sh"
+        else
+          bash "${{ github.action_path }}/main.sh"
+        fi
