@@ -18,6 +18,9 @@ runs:
       run: |        
         if [ "${{ inputs.mode }}" = "cleanup" ]; then
           echo "JOB DETAILS FROM ACTION.YML----------------------"
+
+          sleep 10
+          
           echo "Current job name: ${{ github.job }}"
           
           # Use GitHub API to fetch job status
