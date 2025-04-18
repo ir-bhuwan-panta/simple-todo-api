@@ -21,7 +21,7 @@ runs:
 
           sleep 10
           
-          echo "Current job name: ${{ input.job_status }}"
+          echo "Current job name: ${{ inputs.job_status }}"
           
           # Use GitHub API to fetch job status
           JOB_NAME="${{ github.job }}"
