@@ -3,7 +3,7 @@
 JOB_STATUS=$1
 
 echo "📦 Running PSE cleanup"
-echo "Job status: $JOB_STATUS"
+echo "Job status: $INPUT_JOB_STATUS"
 echo
 echo
 echo " --------------------  SENDING DATA TO API START --------------------"
