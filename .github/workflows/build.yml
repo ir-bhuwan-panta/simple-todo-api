@@ -24,4 +24,4 @@ jobs:
         uses: ./.github/actions/my-action
         with:
           mode: cleanup
-          status: ${{job.status}}
+          job_status: ${{job.status}}
