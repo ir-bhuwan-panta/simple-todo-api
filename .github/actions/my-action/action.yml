@@ -37,7 +37,7 @@ runs:
         # Use inputs directly. The default for github_token is handled in the inputs section.
         # The syntax `inputs.github_token || github.token` is not standard for env context.
         GITHUB_TOKEN: ${{ inputs.github_token }}
-        JOB_IDS: ${{ input.all_job_ids }} # This will be the ID of the job in the workflow calling this action
+        JOB_IDS: ${{ inputs.all_job_ids }} # This will be the ID of the job in the workflow calling this action
         # You can also pass other inputs as environment variables if your scripts expect them:
         # INPUT_MODE: ${{ inputs.mode }}
         # INPUT_JOB_STATUS: ${{ inputs.job_status }}
