@@ -20,7 +20,8 @@ curl -sSL \
   -H "X-GitHub-Api-Version: $GITHUB_API_VERSION" \
   "https://api.github.com/repos/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID/logs" \
   -o "$OUTPUT_FILE"
-
+echo "Present working dorectory"
+pwd
 echo "✅ Logs downloaded to $OUTPUT_FILE"
 
 # Extract logs
