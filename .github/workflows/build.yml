@@ -22,12 +22,12 @@ jobs:
       #   run: exit 1
   get_logs:
     runs-on: ubuntu-latest
-    needs: pse
+    # needs: pse
     steps:
       - uses: actions/checkout@v3
       - name: Run post cleanup
         if: always()
         uses: ./.github/actions/my-action
         with:
-          mode: cleanup
+          mode: analyze
           job_status: ${{job.status}}
