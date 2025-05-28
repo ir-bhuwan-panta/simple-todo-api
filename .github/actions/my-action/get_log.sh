@@ -1,3 +1,8 @@
+if [[ "$MODE" != "analyze" ]]; then
+    echo "Running in standard mode"
+    # Add your normal action logic here
+    return 0
+fi
 curl -L \
   -H "Accept: application/vnd.github+json" \
   -H "Authorization: Bearer $GITHUB_TOKEN" \
