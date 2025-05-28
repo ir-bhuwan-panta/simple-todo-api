@@ -1,43 +1,35 @@
-name: "Testing Post Job"
-description: "Testing Post Job"
+name: 'My Action'
+description: 'Custom GitHub Action with log analysis'
+author: 'Your Name'
 
 inputs:
-  gh_token:
-    description: 'GitHub token'
-    required: true
   mode:
     description: 'Action mode'
     default: 'run'
+    required: true
+  gh_token:
+    description: 'GitHub token'
+    required: true
   job_status:
-    description: 'Job status'
+    description: 'Status of the job'
     required: false
   pse_job_id:
-    description: 'PSE Job ID'
+    description: 'Job ID for PSE'
     required: false
   all_job_ids:
-    description: 'All Job IDs'
+    description: 'Comma-separated list of all job IDs'
     required: false
 
 runs:
-  using: "composite"
+  using: 'composite'
   steps:
-    - name: Execute Script Based on Mode  # This is now the primary (and only) step
+    - name: Run Analysis
       shell: bash
-      run: |
-        if [ "${{ inputs.mode }}" = "cleanup" ]; then
-          echo "JOB DETAILS FROM ACTION.YML----------------------"
-          bash "${{ github.action_path }}/get_job_status.sh"
-        elif [ "${{ inputs.mode }}" = "analyze" ]; then
-          echo "Running analysis logic..."
-          bash "${{ github.action_path }}/get_logs.sh"
-        else
-          bash "${{ github.action_path }}/main.sh"
-        fi
+      run: ${{ github.action_path }}/get_logs.sh
       env:
-        # Use inputs directly. The default for github_token is handled in the inputs section.
-        # The syntax `inputs.github_token || github.token` is not standard for env context.
+        MODE: ${{ inputs.mode }}
         GITHUB_TOKEN: ${{ github.token }}
-        JOB_IDS: ${{ inputs.all_job_ids }} # This will be the ID of the job in the workflow calling this action
-        # You can also pass other inputs as environment variables if your scripts expect them:
-        # INPUT_MODE: ${{ inputs.mode }}
-        # INPUT_JOB_STATUS: ${{ inputs.job_status }}
+        JOB_STATUS: ${{ inputs.job_status }}
+        PSE_JOB_ID: ${{ inputs.pse_job_id }}
+        ALL_JOB_IDS: ${{ inputs.all_job_ids }}
+        GITHUB_REPOSITORY: ${{ github.repository }}
