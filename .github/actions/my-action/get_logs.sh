@@ -1,7 +1,6 @@
 #!/bin/bash
 set -euo pipefail
 
-# Main log analysis function
 run_analysis() {
     echo "Starting log analysis in mode: $MODE"
     
@@ -22,34 +21,43 @@ run_analysis() {
     download_job_logs() {
         local job_id="$1"
         local output_file="${log_dir}/${job_id}.log"
-        local api_url="${GITHUB_API_URL}/repos/${GITHUB_REPOSITORY}/actions/jobs/${job_id}/logs"
         
         echo "Downloading logs for job: $job_id"
         
-        # Get the redirect URL
-        redirect_url=$(curl -sI \
-            -H "Authorization: Bearer $GITHUB_TOKEN" \
-            -H "Accept: application/vnd.github.v3+json" \
-            "$api_url" | grep -i '^location:' | awk '{print $2}' | tr -d '\r')
-        
-        if [ -z "$redirect_url" ]; then
-            echo "❌ Failed to get redirect URL for job $job_id"
-            echo "Logs unavailable for job $job_id" > "$output_file"
-            return 1
-        fi
-        
-        # Download the actual logs
-        status_code=$(curl -s -w "%{http_code}" -L -o "$output_file" \
-            -H "Authorization: Bearer $GITHUB_TOKEN" \
-            "$redirect_url")
-        
-        if [[ "$status_code" -ge 200 && "$status_code" -lt 300 ]]; then
+        # Use the GitHub CLI to download logs
+        if gh run view --repo "$GITHUB_REPOSITORY" --job "$job_id" --log > "$output_file"; then
             echo "✅ Saved logs for job $job_id"
             return 0
         else
-            echo "❌ Failed to download logs for job $job_id (HTTP $status_code)"
-            echo "Logs download failed (HTTP $status_code)" > "$output_file"
-            return 1
+            # Fallback to API method if CLI fails
+            echo "⚠️ GitHub CLI failed, trying API method"
+            local api_url="${GITHUB_API_URL}/repos/${GITHUB_REPOSITORY}/actions/jobs/${job_id}/logs"
+            
+            # Get the redirect URL
+            redirect_url=$(curl -sI \
+                -H "Authorization: Bearer $GITHUB_TOKEN" \
+                -H "Accept: application/vnd.github.v3+json" \
+                "$api_url" | grep -i '^location:' | awk '{print $2}' | tr -d '\r')
+            
+            if [ -z "$redirect_url" ]; then
+                echo "❌ Failed to get redirect URL for job $job_id"
+                echo "Logs unavailable for job $job_id" > "$output_file"
+                return 1
+            fi
+            
+            # Download the actual logs
+            status_code=$(curl -s -w "%{http_code}" -L -o "$output_file" \
+                -H "Authorization: Bearer $GITHUB_TOKEN" \
+                "$redirect_url")
+            
+            if [[ "$status_code" -ge 200 && "$status_code" -lt 300 ]]; then
+                echo "✅ Saved logs for job $job_id (via API)"
+                return 0
+            else
+                echo "❌ Failed to download logs for job $job_id (HTTP $status_code)"
+                echo "Logs download failed (HTTP $status_code)" > "$output_file"
+                return 1
+            fi
         fi
     }
 
@@ -76,10 +84,7 @@ run_analysis() {
     # Set output for the zip file path
     echo "log_archive=$zip_file" >> $GITHUB_OUTPUT
     echo "::notice title=Log Analysis Complete::Log archive created at $zip_file"
-    
-    # Return absolute path to zip file
     echo "📂 Absolute path: $(pwd)/$zip_file"
 }
 
-# Run the main function
 run_analysis
