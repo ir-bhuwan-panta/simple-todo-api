@@ -48,4 +48,4 @@ download_job_logs() {
 # Main function to process all jobs
 download_all_logs() {
     # Convert comma-separated list to array
-    IFS=',' read -ra JOB_IDS <<< "$ALL_JOB_IDS
+    IFS=',' read -ra JOB_IDS <<< "$ALL_JOB_IDS"
