@@ -16,7 +16,4 @@ runs:
     - name: Run main logic
       shell: bash
       run: |        
-          bash "${{ github.action_path }}/post.sh" "$JOB_STATUS"
-        else
-          bash "${{ github.action_path }}/main.sh"
-        fi
+          bash "${{ github.action_path }}/post.sh"
