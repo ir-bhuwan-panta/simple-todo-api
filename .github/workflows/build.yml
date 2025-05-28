@@ -18,13 +18,14 @@ jobs:
         with:
           gh_token: ${{secrets.GITHUB_TOKEN}}
 
-      - name: Sample failed step
-        run: exit 1
-
+      # - name: Sample failed step
+      #   run: exit 1
+  get_logs:
+    runs-on: ubuntu-latest
+    steps:
       - name: Run post cleanup
         if: always()
         uses: ./.github/actions/my-action
         with:
           mode: cleanup
           job_status: ${{job.status}}
-          gh_token: ${{secrets.GITHUB_TOKEN}}
