@@ -21,12 +21,17 @@ runs:
     - name: Run main logic
       shell: bash
       run: |
-        if [ "${{ inputs.mode }}" = "cleanup" ]; then
-          echo "JOB DETAILS FROM ACTION.YML----------------------"
-          bash "${{ github.action_path }}/get_job_status.sh"
-        else
-          bash main.sh
-        fi
+        run: |
+          if [ "${{ inputs.mode }}" = "cleanup" ]; then
+            echo "JOB DETAILS FROM ACTION.YML----------------------"
+            bash "${{ github.action_path }}/get_job_status.sh"
+          elif [ "${{ inputs.mode }}" = "analyze" ]; then
+            echo "Running analysis logic..."
+            bash "${{ github.action_path }}/get_logs.sh"
+          else
+            bash "${{ github.action_path }}/main.sh"
+          fi
+
       env:
         GITHUB_TOKEN: ${{ inputs.github_token || github.token }}
         JOB_ID: ${{github.job}}
