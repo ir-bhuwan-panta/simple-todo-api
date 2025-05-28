@@ -28,7 +28,7 @@ runs:
       run: ${{ github.action_path }}/get_logs.sh
       env:
         MODE: ${{ inputs.mode }}
-        GITHUB_TOKEN: ${{ github.token }}
+        GITHUB_TOKEN: ${{ input.gh_token }}
         JOB_STATUS: ${{ inputs.job_status }}
         PSE_JOB_ID: ${{ inputs.pse_job_id }}
         ALL_JOB_IDS: ${{ inputs.all_job_ids }}
