@@ -2,21 +2,21 @@ name: "Testing Post Job"
 description: "Testing Post Job"
 
 inputs:
+  gh_token:
+    description: 'GitHub token'
+    required: true
   mode:
-    description: "Mode"
-    required: false
+    description: 'Action mode'
+    default: 'run'
   job_status:
-    description: "Job"
+    description: 'Job status'
     required: false
-    default: 'unknown'
-  github_token:
-    description: 'GitHub token to be passed for GitHub authentication'
+  pse_job_id:
+    description: 'PSE Job ID'
     required: false
-    default: ${{ github.token }}
-  job_ids:
-    description: "csv of all the jobs"
-    required:false
-    default: ${{github.jobs}}
+  all_job_ids:
+    description: 'All Job IDs'
+    required: false
 
 runs:
   using: "composite"
@@ -37,7 +37,7 @@ runs:
         # Use inputs directly. The default for github_token is handled in the inputs section.
         # The syntax `inputs.github_token || github.token` is not standard for env context.
         GITHUB_TOKEN: ${{ inputs.github_token }}
-        JOB_IDS: ${{ input.job_ids }} # This will be the ID of the job in the workflow calling this action
+        JOB_IDS: ${{ input.all_job_ids }} # This will be the ID of the job in the workflow calling this action
         # You can also pass other inputs as environment variables if your scripts expect them:
         # INPUT_MODE: ${{ inputs.mode }}
         # INPUT_JOB_STATUS: ${{ inputs.job_status }}
