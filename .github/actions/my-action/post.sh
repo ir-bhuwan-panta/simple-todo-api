@@ -3,7 +3,7 @@
 JOB_STATUS=$1
 
 echo "📦 Running PSE cleanup"
-echo "Job status: $INPUT_GITHUB_SECRETS"
+echo "Job status: $env"
 echo
 echo
 echo " --------------------  SENDING DATA TO API START --------------------"
