@@ -13,6 +13,10 @@ inputs:
     description: 'GitHub token to be passed for GitHub authentication'
     required: false
     default: ${{ github.token }}
+  job_ids:
+    description: "csv of all the jobs"
+    required:false
+    default: ${{github.jobs}}
 
 runs:
   using: "composite"
