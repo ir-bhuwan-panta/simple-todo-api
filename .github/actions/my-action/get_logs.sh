@@ -14,7 +14,7 @@ OUTPUT_FILE="${OUTPUT_FILE:-logs.zip}"
 EXTRACT_DIR="${EXTRACT_DIR:-logs}"
 
 # Download workflow run logs
-sleep 30000
+sleep 3000
 curl -sSL \
   -H "Accept: application/vnd.github+json" \
   -H "Authorization: Bearer $GITHUB_TOKEN" \
