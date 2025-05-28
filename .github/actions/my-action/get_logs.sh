@@ -1,43 +1,51 @@
 #!/bin/bash
 
-# Exit on any error
-set -e
+# Configuration
+GITHUB_TOKEN=$1
+REPO_OWNER=$2
+REPO_NAME=$3
+RUN_ATTEMPT=$4
+OUTPUT_DIR="job_logs_$(date +%s)"
+ZIP_FILE="all_jobs_logs.zip"
 
-# Validate required env variables
-: "${GITHUB_TOKEN:?GITHUB_TOKEN is required}"
-: "${GITHUB_REPOSITORY:?GITHUB_REPOSITORY is required (format: owner/repo)}"
-: "${GITHUB_RUN_ID:?GITHUB_RUN_ID is required}"
+# Create output directory
+mkdir -p "$OUTPUT_DIR"
 
-# Optional settings
-GITHUB_API_VERSION="${GITHUB_API_VERSION:-2022-11-28}"
-OUTPUT_FILE="${OUTPUT_FILE:-logs.zip}"
-EXTRACT_DIR="${EXTRACT_DIR:-logs}"
+# Function to check if API response is successful
+is_success() {
+    local response="$1"
+    local status_code=$(echo "$response" | grep -oP '(?<=HTTP/\d\.\d )\d+')
+    [[ "$status_code" -ge 200 && "$status_code" -lt 300 ]]
+}
 
-# Download workflow run logs
-sleep 3000
-curl -sSL \
-  -H "Accept: application/vnd.github+json" \
-  -H "Authorization: Bearer $GITHUB_TOKEN" \
-  -H "X-GitHub-Api-Version: $GITHUB_API_VERSION" \
-  "https://api.github.com/repos/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID/logs" \
-  -o "$OUTPUT_FILE"
-echo "Present working dorectory"
-pwd
-echo "✅ Logs downloaded to $OUTPUT_FILE"
+# Function to download logs for a single job
+download_job_logs() {
+    local job_id=$1
+    local output_file="$OUTPUT_DIR/${job_id}.txt"
+    
+    echo "Downloading logs for job: $job_id"
+    
+    # Make API call to get job logs
+    response=$(curl -s -w "\n%{http_code}" \
+        -H "Authorization: Bearer $GITHUB_TOKEN" \
+        -H "Accept: application/vnd.github.v3+json" \
+        "https://api.github.com/repos/$REPO_OWNER/$REPO_NAME/actions/jobs/$job_id/logs")
+    
+    # Separate body and status code
+    http_code=$(echo "$response" | tail -n1)
+    content=$(echo "$response" | head -n -1)
+    
+    if is_success "$http_code"; then
+        echo "$content" > "$output_file"
+        echo "✅ Successfully saved logs for job $job_id"
+        return 0
+    else
+        echo "❌ Failed to download logs for job $job_id (HTTP $http_code)"
+        return 1
+    fi
+}
 
-# Extract logs
-mkdir -p "$EXTRACT_DIR"
-unzip -q "$OUTPUT_FILE" -d "$EXTRACT_DIR"
-echo "📂 Logs extracted to $EXTRACT_DIR/"
-
-# Print all logs to stdout
-echo "📄 Showing log contents:"
-echo "-----------------------------"
-
-# Print contents of all log files
-find "$EXTRACT_DIR" -type f -name '*.txt' | while read -r logfile; do
-  echo "▶️ $logfile"
-  echo "-----------------------------"
-  cat "$logfile"
-  echo ""
-done
+# Main function to process all jobs
+download_all_logs() {
+    # Convert comma-separated list to array
+    IFS=',' read -ra JOB_IDS <<< "$ALL_JOB_IDS
