@@ -10,42 +10,22 @@ jobs:
   pse:
     runs-on: ubuntu-latest
     outputs:
-      pse_job_id: ${{ steps.get-job-id.outputs.job_id }}  # Current job's ID
-      all_job_ids: ${{ steps.get-all-job-ids.outputs.job_ids }}  # All job IDs
+      pse_job_id: ${{ steps.get-job-ids.outputs.current_job_id }}
+      all_job_ids: ${{ steps.get-job-ids.outputs.all_job_ids }}
 
     steps:
       - uses: actions/checkout@v3
 
-      - name: Run Custom Action
-        uses: ./.github/actions/my-action
-        with:
-          gh_token: ${{secrets.GITHUB_TOKEN}}
-
-      - name: Get All Job IDs
-        id: get-all-job-ids
+      - name: Get Job IDs
+        id: get-job-ids
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # Get all jobs in current run attempt
-          jobs=$(gh api repos/${{ github.repository }}/actions/runs/${{ github.run_id}}/attempts/${{ github.run_attempt }}/jobs)
-          # Extract all job IDs (comma-separated)
-          job_ids=$(echo "$jobs" | jq -r '.jobs[].id' | tr '\n' ',' | sed 's/,$//')
-          echo "job_ids=$job_ids" >> $GITHUB_OUTPUT
-
-      - name: Get Current Job ID
-        id: get-job-id
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          # Get current job ID by name
-          jobs=$(gh api repos/${{ github.repository }}/actions/runs/${{ github.run_id}}/attempts/${{ github.run_attempt }}/jobs)
-          job_id=$(echo "$jobs" | jq -r ".jobs[] | select(.name == \"${{ github.job }}\") | .id")
-          echo "job_id=$job_id" >> $GITHUB_OUTPUT
-
-      - name: Display Job IDs
-        run: |
-          echo "Current Job ID: ${{ steps.get-job-id.outputs.job_id }}"
-          echo "All Job IDs: ${{ steps.get-all-job-ids.outputs.job_ids }}"
+          jobs=$(gh api repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/jobs)
+          all_ids=$(echo "$jobs" | jq -r '.jobs[].id' | tr '\n' ',' | sed 's/,$//')
+          current_id=$(echo "$jobs" | jq -r ".jobs[] | select(.name == \"${{ github.job }}\") | .id")
+          echo "current_job_id=$current_id" >> $GITHUB_OUTPUT
+          echo "all_job_ids=$all_ids" >> $GITHUB_OUTPUT
 
   get_logs:
     runs-on: ubuntu-latest
@@ -53,13 +33,19 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       
-      - name: Run post cleanup
+      - name: Run log analysis
+        id: log_analysis
         if: always()
         uses: ./.github/actions/my-action
         with:
           mode: analyze
           job_status: ${{ job.status }}
-          # Single job ID from pse job
           pse_job_id: ${{ needs.pse.outputs.pse_job_id }}
-          # All job IDs from the workflow
           all_job_ids: ${{ needs.pse.outputs.all_job_ids }}
+          gh_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload log archive
+        uses: actions/upload-artifact@v3
+        with:
+          name: job-logs
+          path: ${{ steps.log_analysis.outputs.log_archive }}
