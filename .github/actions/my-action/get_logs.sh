@@ -1,71 +1,85 @@
 #!/bin/bash
 set -euo pipefail
 
-# Main function for log analysis
-analyze_logs() {
+# Main log analysis function
+run_analysis() {
+    echo "Starting log analysis in mode: $MODE"
+    
     if [[ "$MODE" != "analyze" ]]; then
         echo "Running in standard mode"
-        # Add your normal action logic here
         return 0
     fi
 
-    echo "Starting log analysis"
+    # Create output directory
     local timestamp=$(date +%Y%m%d_%H%M%S)
     local log_dir="job_logs_${timestamp}"
     local zip_file="all_logs_${timestamp}.zip"
     
     mkdir -p "$log_dir"
-    
-    # Function to check API response
-    is_success() {
-        local response="$1"
-        local status_code=$(echo "$response" | grep -oP '(?<=HTTP/\d\.\d )\d+')
-        [[ "$status_code" -ge 200 && "$status_code" -lt 300 ]]
-    }
+    echo "Created log directory: $log_dir"
 
-    # Function to download logs
+    # Function to download job logs
     download_job_logs() {
         local job_id="$1"
         local output_file="${log_dir}/${job_id}.log"
+        local api_url="${GITHUB_API_URL}/repos/${GITHUB_REPOSITORY}/actions/jobs/${job_id}/logs"
         
         echo "Downloading logs for job: $job_id"
-        response=$(curl -s -w "\n%{http_code}" -L \
+        
+        # Get the redirect URL
+        redirect_url=$(curl -sI \
             -H "Authorization: Bearer $GITHUB_TOKEN" \
             -H "Accept: application/vnd.github.v3+json" \
-            "https://api.github.com/repos/$GITHUB_REPOSITORY/actions/jobs/$job_id/logs")
+            "$api_url" | grep -i '^location:' | awk '{print $2}' | tr -d '\r')
         
-        http_code=$(echo "$response" | tail -n1)
-        content=$(echo "$response" | head -n -1)
+        if [ -z "$redirect_url" ]; then
+            echo "❌ Failed to get redirect URL for job $job_id"
+            echo "Logs unavailable for job $job_id" > "$output_file"
+            return 1
+        fi
         
-        if is_success "$http_code"; then
-            echo "$content" > "$output_file"
+        # Download the actual logs
+        status_code=$(curl -s -w "%{http_code}" -L -o "$output_file" \
+            -H "Authorization: Bearer $GITHUB_TOKEN" \
+            "$redirect_url")
+        
+        if [[ "$status_code" -ge 200 && "$status_code" -lt 300 ]]; then
             echo "✅ Saved logs for job $job_id"
+            return 0
         else
-            echo "❌ Failed to download logs for job $job_id (HTTP $http_code)"
-            echo "error" > "$output_file"
+            echo "❌ Failed to download logs for job $job_id (HTTP $status_code)"
+            echo "Logs download failed (HTTP $status_code)" > "$output_file"
+            return 1
         fi
     }
 
     # Process all job IDs
-    if [[ -n "$ALL_JOB_IDS" ]]; then
+    if [[ -n "${ALL_JOB_IDS:-}" ]]; then
         echo "Processing job IDs: $ALL_JOB_IDS"
         IFS=',' read -ra JOB_ID_ARRAY <<< "$ALL_JOB_IDS"
+        
         for job_id in "${JOB_ID_ARRAY[@]}"; do
-            download_job_logs "$job_id"
+            download_job_logs "$job_id" || true
         done
     else
         echo "⚠️ No job IDs provided for analysis"
+        echo "No jobs to process" > "${log_dir}/no_jobs.txt"
     fi
 
     # Create zip archive
     zip -r "$zip_file" "$log_dir"
     echo "📦 Created log archive: $zip_file"
     
-    # Cleanup and set output
+    # Cleanup temporary files
     rm -rf "$log_dir"
-    echo "::set-output name=log_archive::$zip_file"
-    echo "::notice title=Log Analysis Complete::Log archive available at $zip_file"
+    
+    # Set output for the zip file path
+    echo "log_archive=$zip_file" >> $GITHUB_OUTPUT
+    echo "::notice title=Log Analysis Complete::Log archive created at $zip_file"
+    
+    # Return absolute path to zip file
+    echo "📂 Absolute path: $(pwd)/$zip_file"
 }
 
 # Run the main function
-analyze_logs
+run_analysis
