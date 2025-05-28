@@ -20,7 +20,7 @@ runs:
   steps:
     - name: Run main logic
       shell: bash
-      run: |
+      - name: Execute Script Based on Mode
         run: |
           if [ "${{ inputs.mode }}" = "cleanup" ]; then
             echo "JOB DETAILS FROM ACTION.YML----------------------"
@@ -31,7 +31,6 @@ runs:
           else
             bash "${{ github.action_path }}/main.sh"
           fi
-
       env:
         GITHUB_TOKEN: ${{ inputs.github_token || github.token }}
         JOB_ID: ${{github.job}}
