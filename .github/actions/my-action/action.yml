@@ -5,6 +5,7 @@ inputs:
   mode:
     description: "Mode"
     required: false
+    default: ''
   job_status:
     description: "Job"
     required: false
