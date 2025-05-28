@@ -43,9 +43,3 @@ jobs:
           pse_job_id: ${{ needs.pse.outputs.pse_job_id }}
           all_job_ids: ${{ needs.pse.outputs.all_job_ids }}
           gh_token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Upload log archive
-        uses: actions/upload-artifact@v3
-        with:
-          name: job-logs
-          path: ${{ steps.log_analysis.outputs.log_archive }}
