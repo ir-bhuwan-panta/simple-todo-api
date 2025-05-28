@@ -24,4 +24,4 @@ runs:
           bash "${{ github.action_path }}/get_job_status.sh"
       env:
         GITHUB_TOKEN: ${{ inputs.github_token || github.token }}
-        JOB_ID: ${{github.job_id}}
+        JOB_ID: ${{github.job}}
