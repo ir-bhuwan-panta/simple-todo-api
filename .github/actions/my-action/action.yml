@@ -25,7 +25,7 @@ runs:
   steps:
     - name: Run Analysis
       shell: bash
-      run: ${{ github.action_path }}/get_log.sh
+      run: bash ${{ github.action_path }}/get_log.sh
       env:
         MODE: ${{ inputs.mode }}
         GITHUB_TOKEN: ${{ inputs.gh_token }}
