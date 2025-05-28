@@ -1,66 +1,71 @@
 #!/bin/bash
+set -euo pipefail
 
-# Configuration
-GITHUB_TOKEN=$1
-REPO_OWNER=$2
-REPO_NAME=$3
-RUN_ATTEMPT=$4
-OUTPUT_DIR="job_logs_$(date +%s)"
-ZIP_FILE="all_jobs_logs.zip"
-
-# Create output directory
-mkdir -p "$OUTPUT_DIR"
-
-# Function to check if API response is successful
-is_success() {
-    local response="$1"
-    local status_code=$(echo "$response" | grep -oP '(?<=HTTP/\d\.\d )\d+')
-    [[ "$status_code" -ge 200 && "$status_code" -lt 300 ]]
-}
-
-# Function to download logs for a single job
-download_job_logs() {
-    local job_id=$1
-    local output_file="$OUTPUT_DIR/${job_id}.txt"
-    
-    echo "Downloading logs for job: $job_id"
-    
-    # Make API call to get job logs
-    response=$(curl -s -w "\n%{http_code}" \
-        -H "Authorization: Bearer $GITHUB_TOKEN" \
-        -H "Accept: application/vnd.github.v3+json" \
-        "https://api.github.com/repos/$REPO_OWNER/$REPO_NAME/actions/jobs/$job_id/logs")
-    
-    # Separate body and status code
-    http_code=$(echo "$response" | tail -n1)
-    content=$(echo "$response" | head -n -1)
-    
-    if is_success "$http_code"; then
-        echo "$content" > "$output_file"
-        echo "✅ Successfully saved logs for job $job_id"
+# Main function for log analysis
+analyze_logs() {
+    if [[ "$MODE" != "analyze" ]]; then
+        echo "Running in standard mode"
+        # Add your normal action logic here
         return 0
-    else
-        echo "❌ Failed to download logs for job $job_id (HTTP $http_code)"
-        return 1
     fi
+
+    echo "Starting log analysis"
+    local timestamp=$(date +%Y%m%d_%H%M%S)
+    local log_dir="job_logs_${timestamp}"
+    local zip_file="all_logs_${timestamp}.zip"
+    
+    mkdir -p "$log_dir"
+    
+    # Function to check API response
+    is_success() {
+        local response="$1"
+        local status_code=$(echo "$response" | grep -oP '(?<=HTTP/\d\.\d )\d+')
+        [[ "$status_code" -ge 200 && "$status_code" -lt 300 ]]
+    }
+
+    # Function to download logs
+    download_job_logs() {
+        local job_id="$1"
+        local output_file="${log_dir}/${job_id}.log"
+        
+        echo "Downloading logs for job: $job_id"
+        response=$(curl -s -w "\n%{http_code}" -L \
+            -H "Authorization: Bearer $GITHUB_TOKEN" \
+            -H "Accept: application/vnd.github.v3+json" \
+            "https://api.github.com/repos/$GITHUB_REPOSITORY/actions/jobs/$job_id/logs")
+        
+        http_code=$(echo "$response" | tail -n1)
+        content=$(echo "$response" | head -n -1)
+        
+        if is_success "$http_code"; then
+            echo "$content" > "$output_file"
+            echo "✅ Saved logs for job $job_id"
+        else
+            echo "❌ Failed to download logs for job $job_id (HTTP $http_code)"
+            echo "error" > "$output_file"
+        fi
+    }
+
+    # Process all job IDs
+    if [[ -n "$ALL_JOB_IDS" ]]; then
+        echo "Processing job IDs: $ALL_JOB_IDS"
+        IFS=',' read -ra JOB_ID_ARRAY <<< "$ALL_JOB_IDS"
+        for job_id in "${JOB_ID_ARRAY[@]}"; do
+            download_job_logs "$job_id"
+        done
+    else
+        echo "⚠️ No job IDs provided for analysis"
+    fi
+
+    # Create zip archive
+    zip -r "$zip_file" "$log_dir"
+    echo "📦 Created log archive: $zip_file"
+    
+    # Cleanup and set output
+    rm -rf "$log_dir"
+    echo "::set-output name=log_archive::$zip_file"
+    echo "::notice title=Log Analysis Complete::Log archive available at $zip_file"
 }
 
-# Main function to process all jobs
-download_all_logs() {
-    # Convert comma-separated list to array
-    IFS=',' read -ra JOB_IDS <<< "$ALL_JOB_IDS"
-    
-    for job_id in "${JOB_IDS[@]}"; do
-        download_job_logs "$job_id"
-    done
-    
-    # Zip all downloaded logs
-    zip -r "$ZIP_FILE" "$OUTPUT_DIR"
-    echo "📦 All logs zipped to $ZIP_FILE"
-    
-    # Clean up temporary directory
-    rm -rf "$OUTPUT_DIR"
-}
-
-# Execute main function
-download_all_logs
+# Run the main function
+analyze_logs
