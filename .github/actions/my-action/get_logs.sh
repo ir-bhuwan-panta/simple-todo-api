@@ -49,3 +49,18 @@ download_job_logs() {
 download_all_logs() {
     # Convert comma-separated list to array
     IFS=',' read -ra JOB_IDS <<< "$ALL_JOB_IDS"
+    
+    for job_id in "${JOB_IDS[@]}"; do
+        download_job_logs "$job_id"
+    done
+    
+    # Zip all downloaded logs
+    zip -r "$ZIP_FILE" "$OUTPUT_DIR"
+    echo "📦 All logs zipped to $ZIP_FILE"
+    
+    # Clean up temporary directory
+    rm -rf "$OUTPUT_DIR"
+}
+
+# Execute main function
+download_all_logs
