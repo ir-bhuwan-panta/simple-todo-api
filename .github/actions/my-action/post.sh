@@ -3,7 +3,7 @@
 JOB_STATUS=$1
 
 echo "📦 Running PSE cleanup"
-echo "Job status: $GH_TOKEN"
+echo "Job status: $GITHUB_TOKEN"
 env
 echo
 echo " --------------------  SENDING DATA TO API START --------------------"
