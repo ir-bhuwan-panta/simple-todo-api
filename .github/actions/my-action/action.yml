@@ -5,33 +5,35 @@ inputs:
   mode:
     description: "Mode"
     required: false
-    default: ''
   job_status:
     description: "Job"
     required: false
     default: 'unknown'
   github_token:
-    description: 'GitHub token to be passed to the PSE container for GitHub authentication'
+    description: 'GitHub token to be passed for GitHub authentication'
     required: false
     default: ${{ github.token }}
-
 
 runs:
   using: "composite"
   steps:
-    - name: Run main logic
+    - name: Execute Script Based on Mode  # This is now the primary (and only) step
       shell: bash
-      - name: Execute Script Based on Mode
-        run: |
-          if [ "${{ inputs.mode }}" = "cleanup" ]; then
-            echo "JOB DETAILS FROM ACTION.YML----------------------"
-            bash "${{ github.action_path }}/get_job_status.sh"
-          elif [ "${{ inputs.mode }}" = "analyze" ]; then
-            echo "Running analysis logic..."
-            bash "${{ github.action_path }}/get_logs.sh"
-          else
-            bash "${{ github.action_path }}/main.sh"
-          fi
+      run: |
+        if [ "${{ inputs.mode }}" = "cleanup" ]; then
+          echo "JOB DETAILS FROM ACTION.YML----------------------"
+          bash "${{ github.action_path }}/get_job_status.sh"
+        elif [ "${{ inputs.mode }}" = "analyze" ]; then
+          echo "Running analysis logic..."
+          bash "${{ github.action_path }}/get_logs.sh"
+        else
+          bash "${{ github.action_path }}/main.sh"
+        fi
       env:
-        GITHUB_TOKEN: ${{ inputs.github_token || github.token }}
-        JOB_ID: ${{github.job}}
+        # Use inputs directly. The default for github_token is handled in the inputs section.
+        # The syntax `inputs.github_token || github.token` is not standard for env context.
+        GITHUB_TOKEN: ${{ inputs.github_token }}
+        JOB_ID: ${{ github.job }} # This will be the ID of the job in the workflow calling this action
+        # You can also pass other inputs as environment variables if your scripts expect them:
+        # INPUT_MODE: ${{ inputs.mode }}
+        # INPUT_JOB_STATUS: ${{ inputs.job_status }}
