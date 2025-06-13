@@ -6,6 +6,7 @@ set -e
 # Optional: GitHub API version
 GITHUB_API_VERSION="${GITHUB_API_VERSION:-2022-11-28}"
 env
+echo "Github step id: ${github.step_id}"
 # Call GitHub API
 curl -sSL \
   -H "Accept: application/vnd.github+json" \
