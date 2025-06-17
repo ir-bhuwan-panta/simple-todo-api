@@ -1,8 +1,3 @@
-if [[ "$MODE" != "analyze" ]]; then
-    echo "Running in standard mode"
-    # Add your normal action logic here
-    return 0
-fi
 
 echo curl -L \
   -H "Accept: application/vnd.github+json" \
