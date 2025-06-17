@@ -32,7 +32,7 @@ runs:
           echo "PRINT STEP SUMMARY FROM ACTION.YML----------------------"
           # Pass the job status to your script
           JOB_STATUS=${JOB_STATUS:-"${{ inputs.job_status }}"}
-          bash "${{ github.action_path }}/get_logs.sh"
+          bash "${{ github.action_path }}/get_log.sh"
         else
           bash "${{ github.action_path }}/main.sh"
         fi
