@@ -41,4 +41,4 @@ runs:
         PSE_JOB_ID: ${{ inputs.pse_job_id }}
         ALL_JOB_IDS: ${{ inputs.all_job_ids }}
         GITHUB_REPOSITORY: ${{ github.repository }}
-        GITHUB_RUN_ATTEMPT:${{{github.run_attempt}}
+        GITHUB_RUN_ATTEMPT: ${{{github.run_attempt}}
