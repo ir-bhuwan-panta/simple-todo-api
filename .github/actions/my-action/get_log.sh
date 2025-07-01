@@ -6,5 +6,6 @@
       "https://api.github.com/repos/$GITHUB_REPOSITORY/actions/jobs/$PSE_JOB_ID/logs")
 
     # Echo the variable to display its content in the logs
+    env
     echo "API Response:"
     echo "$API_RESPONSE"
